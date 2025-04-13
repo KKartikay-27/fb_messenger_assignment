@@ -53,6 +53,44 @@ def generate_test_data(session):
     # 3. For each conversation, generate a random number of messages
     # 4. Update relevant tables to maintain data consistency
     
+    logger.info("Generating test data...")
+    
+    # Generate user data
+    users = []
+    for user_id in range(1, NUM_USERS + 1):
+        user_uuid = uuid.uuid4()  # Generating random UUID for each user
+        users.append(user_uuid)
+        name = f"User {user_id}"
+        session.execute(
+            "INSERT INTO users (user_id, name) VALUES (%s, %s)",
+            (user_uuid, name)
+        )
+        logger.info(f"Created user: {name} (ID: {user_uuid})")
+
+    # Generate conversations between random users
+    for _ in range(NUM_CONVERSATIONS):
+        user1_id, user2_id = random.sample(users, 2)  # Random pair of users
+        conversation_id = uuid.uuid4()  # Unique conversation ID
+        start_time = datetime.now() - timedelta(days=random.randint(1, 30))  # Random start time within the last 30 days
+        session.execute(
+            "INSERT INTO conversations (conversation_id, user1_id, user2_id, start_time) VALUES (%s, %s, %s, %s)",
+            (conversation_id, user1_id, user2_id, start_time)
+        )
+        logger.info(f"Created conversation between {user1_id} and {user2_id} (ID: {conversation_id})")
+
+        # Generate random messages for this conversation
+        num_messages = random.randint(1, MAX_MESSAGES_PER_CONVERSATION)  # Random number of messages
+        for _ in range(num_messages):
+            sender_id = random.choice([user1_id, user2_id])  # Random sender
+            message_text = f"Message from {sender_id} at {datetime.now()}"
+            message_timestamp = datetime.now() - timedelta(minutes=random.randint(1, 60))  # Random timestamp
+            message_id = uuid.uuid4()  # Unique message ID
+            session.execute(
+                "INSERT INTO messages (message_id, conversation_id, sender_id, timestamp, message_text) VALUES (%s, %s, %s, %s, %s)",
+                (message_id, conversation_id, sender_id, message_timestamp, message_text)
+            )
+            logger.info(f"Created message (ID: {message_id}) in conversation {conversation_id}")
+    
     logger.info(f"Generated {NUM_CONVERSATIONS} conversations with messages")
     logger.info(f"User IDs range from 1 to {NUM_USERS}")
     logger.info("Use these IDs for testing the API endpoints")

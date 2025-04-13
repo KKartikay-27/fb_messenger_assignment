@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS messages_by_conversation (
     sender_id UUID,
     content TEXT,
     timestamp TIMESTAMP,
-    PRIMARY KEY (conversation_id, timestamp)
+    PRIMARY KEY (conversation_id, timestamp, message_id)
 ) WITH CLUSTERING ORDER BY (timestamp DESC);
 ```
 
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS conversations_by_user (
     conversation_id UUID,
     participant_id UUID,
     last_updated TIMESTAMP,
-    PRIMARY KEY (user_id, last_updated)
+    PRIMARY KEY (user_id, last_updated, conversation_id)
 ) WITH CLUSTERING ORDER BY (last_updated DESC);
 ```
 ### Design Choices:
@@ -73,7 +73,7 @@ Allows quick retrieval of all members in a group or 1-to-1 chat.
 ## Summary of Query Support
 |Use Case	|Table|
 |-----------|-----|
-|Send a message|	All three (insert/update)|
+| Send a message | messages_by_conversation, conversations_by_user, conversation_participants |
 |Get all messages in a conversation	|messages_by_conversation|
 |Paginate messages (before timestamp)|	messages_by_conversation|
 |Get all user conversations (recent first)|	conversations_by_user|
